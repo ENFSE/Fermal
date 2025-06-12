@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Iniciar Sesión</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #f7f9fb;
+      font-family: 'Montserrat', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background: #fff;
+      padding: 36px 32px 28px 32px;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(79,140,255,0.09);
+      width: 100%;
+      max-width: 370px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .login-container h2 {
+      color: #4f8cff;
+      margin-bottom: 24px;
+      font-size: 1.7rem;
+      letter-spacing: 0.5px;
+    }
+    .login-container form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .login-container input[type="email"],
+    .login-container input[type="password"] {
+      padding: 12px 14px;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #f0f4fa;
+      transition: border 0.2s;
+    }
+    .login-container input:focus {
+      border: 1.5px solid #4f8cff;
+      outline: none;
+      background: #fff;
+    }
+    .login-container button {
+      background: linear-gradient(90deg, #4f8cff 0%, #6ed6ff 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(79,140,255,0.07);
+    }
+    .login-container button:hover {
+      background: linear-gradient(90deg, #6ed6ff 0%, #4f8cff 100%);
+    }
+    .login-container p {
+      margin-top: 18px;
+      font-size: 0.98rem;
+      color: #555;
+    }
+    .login-container a {
+      color: #4f8cff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .login-container a:hover {
+      text-decoration: underline;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h2>Iniciar Sesión</h2>
+    <form id="loginForm">
+      <input type="email" name="correo" placeholder="Correo" required>
+      <input type="password" name="password" placeholder="Contraseña" required>
+      <button type="submit">Entrar</button>
+    </form>
+    <p>¿No tienes cuenta? <a href="register.html">Regístrate</a></p>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          correo: form.get('correo'),
+          password: form.get('password')
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      if (res.ok) {
+        localStorage.setItem('usuario', JSON.stringify(data.usuario));
+        location.href = 'index.html'; // Redirige a inicio
+      }
+    });
+  </script>
+</body>
+</html>

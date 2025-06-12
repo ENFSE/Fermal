@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script><script>linkvertise(1360198, {whitelist: [], blacklist: [""]});</script>
+  
+  <meta charset="UTF-8" />
+  <title>ElblogdeFerymal - Mi día a día</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <h1>ElblogdeFerymal</h1>
+      <nav>
+        <a href="galeria.html">Galería</a>
+        <a href="#">Chat WhatsApp</a>
+        <a href="https://www.facebook.com/profile.php?id=100079232678439" target="_blank">Facebook</a>
+      </nav>
+      <div id="usuarioInfo"></div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="dia-section">
+      <h2>Mi día</h2>
+      <div id="contenidoDia" class="contenido-dia">Cargando...</div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2025 ElblogdeFerymal. Todos los derechos reservados.</p>
+  </footer>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem('usuario'));
+    const contenedor = document.getElementById('usuarioInfo');
+    if (!usuario) {
+      location.href = 'login.html';
+    } else {
+      contenedor.innerHTML = `
+        <span class="usuario-nombre">Hola, <strong>${usuario.nombre}</strong></span>
+        <button class="btn-cerrar" onclick="cerrarSesion()">Cerrar sesión</button>
+      `;
+    }
+    function cerrarSesion() {
+      localStorage.removeItem('usuario');
+      location.href = 'login.html';
+    }
+    fetch('/api/mi-dia')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('contenidoDia').textContent = data.contenido || 'Sin contenido todavía.';
+      });
+  </script>
+</body>
+</html>
