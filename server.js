@@ -2,21 +2,62 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const { Pool } = require('pg');
-const path = require('path');
 const bcrypt = require('bcrypt');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
 const app = express();
 const upload = multer();
 app.use(cors());
 app.use(express.json());
 
-// Sirve los archivos estáticos del frontend
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_2YRDpjAv0qOZ@ep-dark-snowflake-a87q59fs-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
 });
 
-// Subir imagen
+// Swagger setup
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Fermal API',
+      version: '1.0.0',
+      description: 'API para ElblogdeFerymal',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: 'Local server'
+      }
+    ],
+  },
+  apis: [__filename], // Documenta este archivo
+};
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+/**
+ * @swagger
+ * /api/upload:
+ *   post:
+ *     summary: Sube una imagen a la galería
+ *     consumes:
+ *       - multipart/form-data
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               imagen:
+ *                 type: string
+ *                 format: binary
+ *               descripcion:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Imagen guardada correctamente
+ */
 app.post('/api/upload', upload.single('imagen'), async (req, res) => {
   const { buffer, mimetype } = req.file;
   const { descripcion } = req.body;
@@ -33,13 +74,37 @@ app.post('/api/upload', upload.single('imagen'), async (req, res) => {
   }
 });
 
-// Obtener todas las imágenes (solo id y descripción)
+/**
+ * @swagger
+ * /api/imagenes:
+ *   get:
+ *     summary: Obtiene todas las imágenes (id y descripción)
+ *     responses:
+ *       200:
+ *         description: Lista de imágenes
+ */
 app.get('/api/imagenes', async (req, res) => {
   const result = await pool.query('SELECT id, descripcion FROM imagenes ORDER BY fecha_subida DESC');
   res.json(result.rows);
 });
 
-// Obtener imagen individual por ID
+/**
+ * @swagger
+ * /api/imagen/{id}:
+ *   get:
+ *     summary: Obtiene una imagen por ID
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Imagen encontrada
+ *       404:
+ *         description: Imagen no encontrada
+ */
 app.get('/api/imagen/:id', async (req, res) => {
   const result = await pool.query('SELECT data, mime FROM imagenes WHERE id = $1', [req.params.id]);
 
@@ -49,7 +114,30 @@ app.get('/api/imagen/:id', async (req, res) => {
   res.send(result.rows[0].data);
 });
 
-// Registro
+/**
+ * @swagger
+ * /api/register:
+ *   post:
+ *     summary: Registra un nuevo usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nombre:
+ *                 type: string
+ *               correo:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuario registrado correctamente
+ *       400:
+ *         description: Error al registrar
+ */
 app.post('/api/register', async (req, res) => {
   const { nombre, correo, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,7 +151,28 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Inicio de sesión
+/**
+ * @swagger
+ * /api/login:
+ *   post:
+ *     summary: Inicia sesión
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               correo:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Sesión iniciada correctamente
+ *       401:
+ *         description: Correo o contraseña incorrectos
+ */
 app.post('/api/login', async (req, res) => {
   const { correo, password } = req.body;
 
@@ -83,13 +192,36 @@ app.post('/api/login', async (req, res) => {
   res.json({ message: 'Sesión iniciada correctamente', usuario: { id: usuario.id, nombre: usuario.nombre, correo: usuario.correo } });
 });
 
-// Obtener contenido de "Mi día"
+/**
+ * @swagger
+ * /api/mi-dia:
+ *   get:
+ *     summary: Obtiene el contenido de "Mi día"
+ *     responses:
+ *       200:
+ *         description: Contenido de "Mi día"
+ *   post:
+ *     summary: Guarda o actualiza el contenido de "Mi día"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               contenido:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Contenido actualizado
+ *       500:
+ *         description: Error al guardar el contenido
+ */
 app.get('/api/mi-dia', async (req, res) => {
   const result = await pool.query('SELECT contenido FROM mi_dia ORDER BY actualizado DESC LIMIT 1');
   res.json(result.rows[0] || { contenido: '' });
 });
 
-// Guardar/actualizar contenido de "Mi día"
 app.post('/api/mi-dia', async (req, res) => {
   const { contenido } = req.body;
   try {
@@ -106,8 +238,7 @@ app.post('/api/mi-dia', async (req, res) => {
   }
 });
 
-// Servir el index.html para cualquier ruta no-API (soporte SPA)
-
+// No servir archivos frontend ni rutas comodín
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor en http://localhost:${PORT}`));
