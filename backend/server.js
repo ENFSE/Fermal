@@ -3,16 +3,18 @@ const multer = require('multer');
 const cors = require('cors');
 const { Pool } = require('pg');
 const path = require('path');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const upload = multer();
 app.use(cors());
-app.use(express.static(__dirname));
 app.use(express.json());
+
+// Sirve los archivos estáticos del frontend
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 const pool = new Pool({
-  connectionString: 'postgresql://neondb_owner:npg_2YRDpjAv0qOZ@ep-dark-snowflake-a87q59fs-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
+  connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_2YRDpjAv0qOZ@ep-dark-snowflake-a87q59fs-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
 });
 
 // Subir imagen
@@ -48,14 +50,6 @@ app.get('/api/imagen/:id', async (req, res) => {
   res.send(result.rows[0].data);
 });
 
-// Servir HTML principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.listen(3000, () => console.log('✅ Servidor en http://localhost:3000'));
-const bcrypt = require('bcrypt');
-
 // Registro
 app.post('/api/register', async (req, res) => {
   const { nombre, correo, password } = req.body;
@@ -89,6 +83,7 @@ app.post('/api/login', async (req, res) => {
 
   res.json({ message: 'Sesión iniciada correctamente', usuario: { id: usuario.id, nombre: usuario.nombre, correo: usuario.correo } });
 });
+
 // Obtener contenido de "Mi día"
 app.get('/api/mi-dia', async (req, res) => {
   const result = await pool.query('SELECT contenido FROM mi_dia ORDER BY actualizado DESC LIMIT 1');
@@ -111,25 +106,11 @@ app.post('/api/mi-dia', async (req, res) => {
     res.status(500).json({ message: 'Error al guardar el contenido' });
   }
 });
-// Obtener contenido de "Mi día"
-app.get('/api/mi-dia', async (req, res) => {
-  const result = await pool.query('SELECT contenido FROM mi_dia ORDER BY actualizado DESC LIMIT 1');
-  res.json(result.rows[0] || { contenido: '' });
+
+// Servir el index.html para cualquier ruta no-API (soporte SPA)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Guardar/actualizar contenido de "Mi día"
-app.post('/api/mi-dia', async (req, res) => {
-  const { contenido } = req.body;
-  try {
-    const result = await pool.query('SELECT COUNT(*) FROM mi_dia');
-    if (parseInt(result.rows[0].count) === 0) {
-      await pool.query('INSERT INTO mi_dia (contenido) VALUES ($1)', [contenido]);
-    } else {
-      await pool.query('UPDATE mi_dia SET contenido = $1, actualizado = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM mi_dia ORDER BY actualizado DESC LIMIT 1)', [contenido]);
-    }
-    res.json({ message: 'Contenido actualizado' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al guardar el contenido' });
-  }
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`✅ Servidor en http://localhost:${PORT}`));
