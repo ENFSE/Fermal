@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Editar "Mi día"</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h2>Editar "Mi día"</h2>
+  <textarea id="texto" rows="10" cols="50" placeholder="Escribe aquí..."></textarea>
+  <br>
+  <button onclick="guardar()">Guardar</button>
+
+<script>
+  const API_URL = 'https://fermal.onrender.com'; // Sin slash final
+
+  const usuario = JSON.parse(localStorage.getItem('usuario'));
+  if (!usuario || usuario.correo !== "marlyncambeiro@gmail.com") {
+    alert("Acceso no autorizado");
+    location.href = 'index.html';
+  }
+
+  fetch(`${API_URL}/api/mi-dia`)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('texto').value = data.contenido || '';
+    })
+    .catch(() => {
+      alert('Error al cargar el contenido.');
+    });
+
+  function guardar() {
+    const texto = document.getElementById('texto').value;
+    fetch(`${API_URL}/api/mi-dia`, {
+      method: 'POST',
+      body: JSON.stringify({ contenido: texto }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || 'Guardado');
+      location.href = 'index.html';
+    })
+    .catch(() => {
+      alert('Error al guardar el contenido.');
+    });
+  }
+</script>
+</body>
+</html>

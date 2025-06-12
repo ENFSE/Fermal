@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      background: #f7f9fb;
+      font-family: 'Montserrat', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .register-container {
+      background: #fff;
+      padding: 36px 32px 28px 32px;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(79,140,255,0.09);
+      width: 100%;
+      max-width: 370px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .register-container h2 {
+      color: #4f8cff;
+      margin-bottom: 24px;
+      font-size: 1.7rem;
+      letter-spacing: 0.5px;
+    }
+    .register-container form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .register-container input[type="text"],
+    .register-container input[type="email"],
+    .register-container input[type="password"] {
+      padding: 12px 14px;
+      border: 1px solid #dbeafe;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #f0f4fa;
+      transition: border 0.2s;
+    }
+    .register-container input:focus {
+      border: 1.5px solid #4f8cff;
+      outline: none;
+      background: #fff;
+    }
+    .register-container button {
+      background: linear-gradient(90deg, #4f8cff 0%, #6ed6ff 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(79,140,255,0.07);
+    }
+    .register-container button:hover {
+      background: linear-gradient(90deg, #6ed6ff 0%, #4f8cff 100%);
+    }
+    .register-container p {
+      margin-top: 18px;
+      font-size: 0.98rem;
+      color: #555;
+    }
+    .register-container a {
+      color: #4f8cff;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .register-container a:hover {
+      text-decoration: underline;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+  <div class="register-container">
+    <h2>Crear cuenta</h2>
+    <form id="registerForm">
+      <input type="text" name="nombre" placeholder="Nombre" required>
+      <input type="email" name="correo" placeholder="Correo" required>
+      <input type="password" name="password" placeholder="Contraseña" required>
+      <button type="submit">Registrarse</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+  </div>
+<script>
+// filepath: c:\Users\José Carrillo\Desktop\frontend\register.html
+  const API_URL = 'https://fermal.onrender.com'; // Sin slash final
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+
+    try {
+      const res = await fetch(`${API_URL}/api/register`, {
+        method: 'POST',
+        body: JSON.stringify({
+          nombre: form.get('nombre'),
+          correo: form.get('correo'),
+          password: form.get('password')
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await res.json();
+      alert(data.message || (res.ok ? 'Registro exitoso' : 'Error en el registro'));
+      if (res.ok) location.href = 'login.html';
+    } catch (err) {
+      alert('Error de conexión con el servidor');
+    }
+  });
+</script>
+</body>
+</html>
