@@ -11,7 +11,6 @@ app.use(cors());
 app.use(express.json());
 
 // Sirve los archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, '../frontend')));
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_2YRDpjAv0qOZ@ep-dark-snowflake-a87q59fs-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
@@ -108,9 +107,7 @@ app.post('/api/mi-dia', async (req, res) => {
 });
 
 // Servir el index.html para cualquier ruta no-API (soporte SPA)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
-});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`✅ Servidor en http://localhost:${PORT}`));
