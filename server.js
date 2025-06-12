@@ -9,6 +9,7 @@ const upload = multer();
 app.use(cors());
 app.use(express.static(__dirname));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 const pool = new Pool({
   connectionString: 'postgresql://neondb_owner:npg_2YRDpjAv0qOZ@ep-dark-snowflake-a87q59fs-pooler.eastus2.azure.neon.tech/neondb?sslmode=require'
