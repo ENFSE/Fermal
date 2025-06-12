@@ -26,7 +26,7 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
+        url: 'https://fermal.onrender.com',
         description: 'Local server'
       }
     ],
@@ -241,4 +241,7 @@ app.post('/api/mi-dia', async (req, res) => {
 // No servir archivos frontend ni rutas comodín
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Servidor en http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Servidor en http://localhost:${PORT}`);
+  console.log(`📚 Swagger docs en https://fermal.onrender.com/api-docs`);
+});
